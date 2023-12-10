@@ -1,0 +1,22 @@
+version: '3.1'
+services:
+  tensorflow:
+    container_name: tensorflow-gpu
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: jupyter notebook --ip=0.0.0.0 --allow-root --NotebookApp.token='' --NotebookApp.password=''
+    volumes:
+      - ./notebooks:/tf/notebooks
+      - ./data:/tf/data
+      - ./snapshots:/tf/snapshots
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+    ports:
+      - '8888:8888'

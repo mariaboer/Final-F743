@@ -1,0 +1,13 @@
+venv
+Final-F743_outputs
+*.zip
+data
+snapshots
+.git
+.gitignore
+*.pyc
+*.pyo
+*.pyd
+*.so
+.Python
+__pycache__/*

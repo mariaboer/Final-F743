@@ -3,6 +3,8 @@ Final-F743_outputs
 *.zip
 data
 snapshots
+!snapshots/preprocessed.pkl
+outputs
 .git
 .gitignore
 *.pyc

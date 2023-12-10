@@ -1,14 +1,14 @@
-FROM tensorflow/tensorflow:latest-gpu-jupyter
+FROM tensorflow/tensorflow:latest-gpu
+
+RUN apt update && apt install -y nano && apt clean autoclean && apt autoremove -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /tf
 # Install dependencies
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install --upgrade -r requirements.txt
 
-# Copy source code
+VOLUME /tf/outputs
+
 COPY . .
-EXPOSE 8888
-
-# Run the application
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--allow-root", "--no-browser", "--NotebookApp.password=''"]
-
+CMD ["python3", "main.py"]

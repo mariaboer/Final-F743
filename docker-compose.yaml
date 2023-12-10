@@ -1,22 +1,18 @@
 version: '3.1'
 services:
   tensorflow:
-    container_name: tensorflow-gpu
+    container_name: f743-pythonic
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    command: jupyter notebook --ip=0.0.0.0 --allow-root --NotebookApp.token='' --NotebookApp.password=''
+    command: sleep 10000000
     volumes:
-      - ./notebooks:/tf/notebooks
-      - ./data:/tf/data
-      - ./snapshots:/tf/snapshots
+      - ./outputs:/tf/outputs
     deploy:
       resources:
         reservations:
           devices:
-          - driver: nvidia
-            count: all
-            capabilities: [gpu]
-    ports:
-      - '8888:8888'
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]

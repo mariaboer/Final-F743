@@ -1,10 +1,8 @@
-# import time
-import pandas as pd
-import os
-import time
-import pickle
-import threading
 import argparse
+import os
+import pickle
+
+import pandas as pd
 
 
 def str_or_none(value):
@@ -38,7 +36,7 @@ def main(rootpath):
     df_concat.to_csv(datafile, index=False)
 
     ##Use Pickle to create a binary hierarchy that can be translated later
-    with open(os.path.join(rootpath,'snapshots','chunk.pkl'), 'wb') as file:
+    with open(os.path.join(rootpath, 'snapshots', 'chunk.pkl'), 'wb') as file:
         pickle.dump(df_concat, file)
 
 

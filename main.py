@@ -1,8 +1,7 @@
+import os
 import threading
 
-import notebooks.AdaBoostRegressor_8 as ABR
-import notebooks.Principal_Component_Analysis_4 as PCA
-
+import notebooks.AdaBoosterRegressor_8 as ABR
 import notebooks.Basic_NN_11 as NN
 import notebooks.Chunkfile_0 as loader
 import notebooks.DataVisuals_2 as visuals
@@ -11,6 +10,7 @@ import notebooks.GridSearchCV_6 as GridSearch
 import notebooks.K_Nearest_Neighbor_3 as KNN
 import notebooks.MLP_Regressor_10 as MLP
 import notebooks.Preprocessing_1 as preproc
+import notebooks.Principle_Component_Analysis_4 as PCA
 import notebooks.RandomForestRegressor_9 as RFR
 import notebooks.XGBoost_5 as XGB
 
@@ -21,7 +21,7 @@ def main():
     preproc.main(rootpath)
 
     threads = []
-    max_threads = 5  # Adjust this number to reduce the amount of memory usage
+    max_threads = 1  # Adjust this number to reduce the amount of memory usage
 
     threads.append(threading.Thread(target=visuals.main, args=(rootpath,)))
     threads.append(threading.Thread(target=KNN.main, args=(rootpath,)))

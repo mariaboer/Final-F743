@@ -1,5 +1,6 @@
 import os
 import threading
+from time import sleep
 
 import notebooks.AdaBoosterRegressor_8 as ABR
 import notebooks.Basic_NN_11 as NN
@@ -37,6 +38,7 @@ def main():
     while len(threads) > 0:
         if threading.active_count() < max_threads:
             threads.pop().start()
+            sleep(1)
 
 
 if __name__ == '__main__':

@@ -9,28 +9,28 @@ import seaborn as sns
 
 def configure_logging(level=logging.INFO, log_path=None):
     if log_path is None:
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+        log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
     if not os.path.exists(log_path):
         os.mkdir(log_path)
 
     log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
     if level == logging.INFO or logging.NOTSET:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
     elif level == logging.DEBUG or level == logging.ERROR:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
 
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.root_path is None:
         args.root_path = os.path.dirname(__file__)
-    configure_logging(logging.DEBUG, os.path.join(args.root_path,'logs'))
+    configure_logging(logging.DEBUG, os.path.join(args.root_path, 'logs'))
     if ['DataFile', 'Memory'] not in args.loader:
         logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
     args.loader = 'Memory'

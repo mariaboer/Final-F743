@@ -15,21 +15,21 @@ def configure_logging(level=logging.INFO, log_path=None):
     log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
     if level == logging.INFO or logging.NOTSET:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
     elif level == logging.DEBUG or level == logging.ERROR:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
 
 
@@ -46,17 +46,15 @@ def process_chunk(df):
 
 def main(rootpath):
     datafile = os.path.join(rootpath, 'data', 'itineraries.csv')
-
+    headers = pd.read_csv(datafile, nrows=1).columns.tolist()
     chunks = pd.read_csv(datafile, chunksize=100000, engine='c')
-    datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+    savefile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+    df = pd.DataFrame(columns=headers)
+    df.to_csv(savefile, index=False)
     for chunk in chunks:  # each chunk is a dataframe
         # perform data filtering
         filtered_chunk = process_chunk(chunk)
-        filtered_chunk.to_csv(datafile, mode='a', index=False, header=False)
-    df_concat = pd.read_csv(datafile)
-    df_concat.reset_index(inplace=True)
-    df_concat.columns = chunks.columns
-    df_concat.to_csv(datafile, index=False)
+        filtered_chunk.to_csv(savefile, mode='a', index=False, header=False)
     # Save dataframe off in case of error
 
     # Use Pickle to create a binary hierarchy that can be translated later

@@ -15,28 +15,28 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 def configure_logging(level=logging.INFO, log_path=None):
     if log_path is None:
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+        log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
     if not os.path.exists(log_path):
         os.mkdir(log_path)
 
     log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
     if level == logging.INFO or logging.NOTSET:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
     elif level == logging.DEBUG or level == logging.ERROR:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
 
 
@@ -74,10 +74,10 @@ def main(rootpath, loader):
 
     # Combining transformers using ColumnTransformer
     preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', numeric_transformer, numeric_features),
-                ('cat', categorical_transformer, categorical_features)
-            ])
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)
+        ])
 
     # Combining preprocessing and KNN model into a single pipeline
     logging.debug("Starting Pipeline")
@@ -92,13 +92,14 @@ def main(rootpath, loader):
     with open(os.path.join(rootpath, 'snapshots', 'knn.pkl'), 'wb') as f:
         pickle.dump(pipeline, f)
 
+    logging.info("K-Nearest Neighbors Regression Model: Return the Mean Squared Error and R-squared")
+
     # Evaluate the model
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-    logging.info("K-Nearest Neighbors Regression Model: Return the Mean Squared Error and R-squared")
-    logging.info(f'KNN - Mean Squared Error: {mse}')
-    logging.info(f'KNN - R-squared: {r2}')
 
+    logging.info(f'Mean Squared Error: {mse}')
+    logging.info(f'R-squared: {r2}')
     # Calculate residuals
     residuals = y_test - y_pred
     logging.debug("Saving residuals plot")
@@ -111,14 +112,20 @@ def main(rootpath, loader):
     plt.savefig(os.path.join(rootpath, 'outputs', 'KNN - Residuals Plot.jpg'), format='jpeg')
 
     logging.debug("Saving actual vs. predicted plot")
+
+    plt.clf()
+
     # Plotting actual vs. predicted values
-    plt.scatter(y_test, y_pred)
+    plt.scatter(y_test, y_pred, label='Predictions', alpha=0.7)
+    plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', linewidth=2, label='Perfect Prediction')
     plt.xlabel('Actual Base Fare')
     plt.ylabel('Predicted Base Fare')
-    plt.title('Actual vs. Predicted Base Fare using KNN Regression')
-    plt.savefig(os.path.join(rootpath, 'outputs', 'KNN - Actual vs. Predicted.jpg'), format='jpeg')
+    plt.title('Actual vs. Predicted Base Fare using Random Forest Regression')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(rootpath, 'outputs', 'Random Forest - Actual vs. Predicted.jpg'), format='jpeg')
 
-    logging.info('KNN Regression Completed')
+    print("Random Forest completed")
 
 
 if __name__ == '__main__':
@@ -128,7 +135,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.root_path is None:
         args.root_path = os.path.dirname(__file__)
-    configure_logging(logging.DEBUG, os.path.join(args.root_path,'logs'))
+    configure_logging(logging.DEBUG, os.path.join(args.root_path, 'logs'))
     if ['DataFile', 'Memory'] not in args.loader:
         logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
     args.loader = 'Memory'

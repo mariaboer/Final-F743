@@ -11,28 +11,28 @@ import pandas as pd
 
 def configure_logging(level=logging.INFO, log_path=None):
     if log_path is None:
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+        log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
     if not os.path.exists(log_path):
         os.mkdir(log_path)
 
     log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
     if level == logging.INFO or logging.NOTSET:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
     elif level == logging.DEBUG or level == logging.ERROR:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
 
 
@@ -95,10 +95,6 @@ def main(rootpath, loader):
     # Preprocess Data
     logging.debug("Starting preprocessing")
     df = df.dropna()
-    # Drop Unwanted columns in  Dataframe
-    df = df[['destinationAirport', 'elapsedDays', 'isBasicEconomy', 'isNonStop', 'baseFare', 'totalFare', 'seatsRemaining',
-             'totalTravelDistance', 'totalTravelDuration', 'weeknum', 'time_of_departure',
-             'time_of_arrival', 'no_airlines', 'no_layovers', 'no_equipment', 'no_cabin_changes']]
 
     # Rename columns
     df['totalTravelDuration'] = df['travelDuration'].apply(lambda x: convert_duration(x))
@@ -109,6 +105,10 @@ def main(rootpath, loader):
     df['no_airlines'] = df['segmentsAirlineCode'].apply(count_unique_values_in_row)
     df['no_equipment'] = df['segmentsEquipmentDescription'].apply(count_unique_values_in_row)
     df['no_cabin_changes'] = df['segmentsCabinCode'].apply(count_unique_values_in_row)
+    # Drop Unwanted columns in  Dataframe
+    df = df[['destinationAirport', 'elapsedDays', 'isBasicEconomy', 'isNonStop', 'baseFare', 'totalFare', 'seatsRemaining',
+             'totalTravelDistance', 'totalTravelDuration', 'weeknum', 'time_of_departure',
+             'time_of_arrival', 'no_airlines', 'no_layovers', 'no_equipment', 'no_cabin_changes']]
 
     logging.debug("Replacing null values")
     # Check for sparse data - will impact models
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.root_path is None:
         args.root_path = os.path.dirname(__file__)
-    configure_logging(logging.DEBUG, os.path.join(args.root_path,'logs'))
+    configure_logging(logging.DEBUG, os.path.join(args.root_path, 'logs'))
     if ['DataFile', 'Memory'] not in args.loader:
         logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
     args.loader = 'Memory'

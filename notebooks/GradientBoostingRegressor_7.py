@@ -1,28 +1,58 @@
 import argparse
+import logging
 import os
 import pickle
 
+import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingRegressor  # Import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+
+def configure_logging(level=logging.INFO, log_path=None):
+    if log_path is None:
+        log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+    if not os.path.exists(log_path):
+        os.mkdir(log_path)
+
+    log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
+    if level == logging.INFO or logging.NOTSET:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+    elif level == logging.DEBUG or level == logging.ERROR:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
 
 
 def str_or_none(value):
     return value if value is None else str(value)
 
 
-def main(rootpath):
-    if rootpath is None:
-        rootpath = os.path.dirname(__file__)
-    # datafile = os.path.join(rootpath, 'AtlantaPrices_Processed.csv')
-    # df = pd.read_csv(datafile)
-
-    picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
-    with open(picklefile, 'rb') as file:
-        df = pickle.load(file)
+def main(rootpath, loader):
+    # Bring in data to pre-process
+    if loader == 'DataFile':
+        datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+        df = pd.read_csv(datafile)
+    else:
+        pickle_file = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
+        with open(pickle_file, 'rb') as file:
+            df = pickle.load(file)
 
     # Separate features (X) and target variable (y)
     X = df.drop('baseFare', axis=1)
@@ -60,21 +90,49 @@ def main(rootpath):
     mse = mean_squared_error(y_test, y_pred)
     r_squared = r2_score(y_test, y_pred)
 
-    print("Gradient Boosting Regression Model: Return the Mean Squared Error and R-squared")
-    print(f'Mean Squared Error: {mse}')
-    print(f'R-squared: {r_squared}')
-    print("Gradient Boosting completed")
+    loading.info("Gradient Boosting Regression Model: Return the Mean Squared Error and R-squared")
+    loading.info(f'Mean Squared Error: {mse}')
+    loading.info(f'R-squared: {r_squared}')
+
+    # Calculate residuals
+    residuals = y_test - y_pred
+
+    # Plotting residual values
+    plt.scatter(y_test, residuals)
+    plt.xlabel('Actual Base Fare')
+    plt.ylabel('Residuals')
+    plt.title('Residuals Plot for Gradient Boosting')
+    plt.savefig(os.path.join(rootpath, 'outputs', 'Gradient Boosting - Residuals Plot.jpg'), format='jpeg')
+
+    plt.clf()
+
+    # Plotting actual vs. predicted values
+    plt.scatter(y_test, y_pred, label='Predictions', alpha=0.7)
+    plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', linewidth=2, label='Perfect Prediction')
+    plt.xlabel('Actual Base Fare')
+    plt.ylabel('Predicted Base Fare')
+    plt.title('Actual vs. Predicted Base Fare using GradientBoosting Regression')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(rootpath, 'outputs', 'GradientBoosting - Actual vs. Predicted.jpg'), format='jpeg')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Gradient Boosting Regression Model')
     parser.add_argument('--root_path', type=str_or_none, help='Root path of the project. Should have the snapshots/data folder', default=None)
+    parser.add_argument('--loader', type=str_or_none, help='Type of loader to use. Literals "DataFile" or "Memory".Default - Memory', default="Memory")
     args = parser.parse_args()
+    if args.root_path is None:
+        args.root_path = os.path.dirname(__file__)
+    configure_logging(logging.DEBUG, os.path.join(args.root_path, 'logs'))
+    if ['DataFile', 'Memory'] not in args.loader:
+        logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
+    args.loader = 'Memory'
     try:
-        main(args.root_path)
+        main(args.root_path, args.loader)
     except KeyboardInterrupt:
-        print('Program terminated by user')
+        loading.warning('Program terminated by user')
         exit(-1)
     except Exception as e:
-        print(e)
-        print('Error running the program')
+        loading.error(e)
+        loading.error('Error running the program')

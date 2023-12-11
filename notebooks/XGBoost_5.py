@@ -6,42 +6,37 @@ import pickle
 import matplotlib.pyplot as plt
 import pandas as pd
 import xgboost as xgb
-
-
-
-
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from xgboost import XGBRegressor
 
 
 def configure_logging(level=logging.INFO, log_path=None):
     if log_path is None:
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+        log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
     if not os.path.exists(log_path):
         os.mkdir(log_path)
 
     log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
     if level == logging.INFO or logging.NOTSET:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
     elif level == logging.DEBUG or level == logging.ERROR:
         logging.basicConfig(
-                level=level,
-                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
-                handlers=[
-                    logging.FileHandler(log_file),
-                    logging.StreamHandler()
-                ]
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
         )
 
 
@@ -71,10 +66,10 @@ def main(rootpath, loader):
     logging.debg(f"Categorical columns: {categorical_columns}")
     # Create transformers for encoding and scaling
     preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
-                ('cat', OneHotEncoder(), categorical_columns)
-            ])
+        transformers=[
+            ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
+            ('cat', OneHotEncoder(), categorical_columns)
+        ])
 
     # Create the XGBoost Regressor model
     model = xgb.XGBRegressor()
@@ -93,11 +88,40 @@ def main(rootpath, loader):
     # Make predictions on the test set
     y_pred = pipeline.predict(X_test)
 
+    logging.info("XGBoost Regression Model: Return the Mean Squared Error and R-squared")
+
     # Evaluate the model
     mse = mean_squared_error(y_test, y_pred)
     r_squared = r2_score(y_test, y_pred)
 
     num_trees_to_plot = 5
+    r2 = r2_score(y_test, y_pred)
+
+    logging.info(f'Mean Squared Error: {mse}')
+    logging.info(f'R-squared: {r2}')
+
+    residuals = y_test - y_pred
+
+    # Plotting residual values
+    plt.scatter(y_test, residuals)
+    plt.xlabel('Actual Base Fare')
+    plt.ylabel('Residuals')
+    plt.title('Residuals Plot for KNN Regression')
+    plt.savefig(os.path.join(rootpath, 'outputs', 'XGBoost - Residuals Plot.jpg'), format='jpeg')
+
+    plt.clf()
+
+    # Plotting actual vs. predicted values
+    plt.scatter(y_test, y_pred, label='Predictions', alpha=0.7)
+    plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', linewidth=2, label='Perfect Prediction')
+    plt.xlabel('Actual Base Fare')
+    plt.ylabel('Predicted Base Fare')
+    plt.title('Actual vs. Predicted Base Fare using XGBoost Regression')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(rootpath, 'outputs', 'XGBoost - Actual vs. Predicted.jpg'), format='jpeg')
+
+    num_trees_to_plot = 2
 
     plt.figure(figsize=(18, 12))
     for i in range(num_trees_to_plot):
@@ -105,8 +129,7 @@ def main(rootpath, loader):
         xgb.plot_tree(pipeline.named_steps['model'], num_trees=i, rankdir='LR')
         plt.title(f'Tree {i + 1}')
 
-    plt.savefig(os.path.join(rootpath, 'outputs', 'xgboost.png'))
-
+    plt.savefig(os.path.join(rootpath, 'outputs', 'XGBoost-Tree.png'))
 
     logging.debug("XGBoost Regression Model: Return the Mean Squared Error and R-squared")
     logging.info(f'Mean Squared Error: {mse}')
@@ -121,15 +144,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.root_path is None:
         args.root_path = os.path.dirname(__file__)
-    configure_logging(logging.DEBUG, os.path.join(args.root_path,'logs'))
+    configure_logging(logging.DEBUG, os.path.join(args.root_path, 'logs'))
     if ['DataFile', 'Memory'] not in args.loader:
         logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
     args.loader = 'Memory'
     try:
         main(args.root_path, args.loader)
     except KeyboardInterrupt:
-        print('Program terminated by user')
+        loading.warning('Program terminated by user')
         exit(-1)
     except Exception as e:
-        print(e)
-        print('Error running the program')
+        loading.error(e)
+        loading.error('Error running the program')

@@ -1,39 +1,71 @@
+import logging
 import os
 import threading
 from time import sleep
 
 import notebooks.AdaBoosterRegressor_8 as ABR
-import notebooks.Basic_NN_11 as NN
-import notebooks.Chunkfile_0 as loader
+import notebooks.Chunkfile_0 as loader  # noqa
 import notebooks.DataVisuals_2 as visuals
 import notebooks.GradientBoostingRegressor_7 as GBR
 import notebooks.GridSearchCV_6 as GridSearch
 import notebooks.K_Nearest_Neighbor_3 as KNN
 import notebooks.MLP_Regressor_10 as MLP
-import notebooks.Preprocessing_1 as preproc
+import notebooks.Preprocessing_1 as preproc  # noqa
 import notebooks.Principle_Component_Analysis_4 as PCA
 import notebooks.RandomForestRegressor_9 as RFR
 import notebooks.XGBoost_5 as XGB
 
 
+def configure_logging(level=logging.INFO, log_path=None):
+    if log_path is None:
+        log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+    if not os.path.exists(log_path):
+        os.mkdir(log_path)
+
+    log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
+    if level == logging.INFO or logging.NOTSET:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+    elif level == logging.DEBUG or level == logging.ERROR:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+
+
+def str_or_none(value):
+    return value if value is None else str(value)
+
+
 def main():
-    rootpath = os.path.dirname(__file__)
-    loader.main(rootpath)
-    preproc.main(rootpath)
+    rootpath = os.path.dirname(os.path.realpath(__file__))
+    # loader.main(rootpath)
+    preproc.main(rootpath, 'Memory')
 
     threads = []
-    max_threads = 1  # Adjust this number to reduce the amount of memory usage
+    active_threads = []
+    max_threads = 2  # Adjust this number to reduce the amount of memory usage
 
-    threads.append(threading.Thread(target=visuals.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=KNN.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=PCA.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=XGB.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=GridSearch.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=GBR.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=ABR.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=RFR.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=MLP.main, args=(rootpath,)))
-    threads.append(threading.Thread(target=NN.main, args=(rootpath,)))
+    threads.append(threading.Thread(target=visuals.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=KNN.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=PCA.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=XGB.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=GridSearch.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=GBR.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=ABR.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=RFR.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=MLP.main, args=(rootpath, 'Memory')))
+    # threads.append(threading.Thread(target=NN.main, args=(rootpath,'Memory')))
 
     while len(threads) > 0:
         if threading.active_count() < max_threads:
@@ -49,6 +81,7 @@ if __name__ == '__main__':
         # The preprocessing step requires ~25GB of RAM.
         # Please ensure you have enough RAM before running these steps.
         # If you do not have enough RAM, please run the notebooks individually.
+        configure_logging(logging.DEBUG)
         main()
         print('All threads completed')
     except KeyboardInterrupt:

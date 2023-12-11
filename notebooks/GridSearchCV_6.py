@@ -4,7 +4,6 @@ import os
 import pickle
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_squared_error, r2_score
@@ -107,9 +106,9 @@ def main(rootpath, loader):
     mse = mean_squared_error(y_test, y_pred)
     r_squared = r2_score(y_test, y_pred)
 
-    loading.info(f'Best Hyperparameters: {grid_search.best_params_}')
-    loading.info(f'Mean Squared Error: {mse}')
-    loading.info(f'R-squared: {r_squared}')
+    logging.info(f'Best Hyperparameters: {grid_search.best_params_}')
+    logging.info(f'Mean Squared Error: {mse}')
+    logging.info(f'R-squared: {r_squared}')
 
     # Once hyperparameters are identified we run the algorithm again with said parameters and increase the R-squared slightly
 
@@ -157,11 +156,11 @@ def main(rootpath, loader):
     mse = mean_squared_error(y_test, y_pred)
     r_squared = r2_score(y_test, y_pred)
 
-    loading.info("GridsearchCV XGBoost Regression Model: Return the Mean Squared Error and R-squared")
+    logging.info("GridsearchCV XGBoost Regression Model: Return the Mean Squared Error and R-squared")
 
-    loading.info(f'Best Hyperparameters: {best_hyperparameters}')
-    loading.info(f'Mean Squared Error: {mse}')
-    loading.info(f'R-squared: {r_squared}')
+    logging.info(f'Best Hyperparameters: {best_hyperparameters}')
+    logging.info(f'Mean Squared Error: {mse}')
+    logging.info(f'R-squared: {r_squared}')
 
     # Calculate residuals
     residuals = y_test - y_pred
@@ -185,18 +184,18 @@ def main(rootpath, loader):
     plt.grid(True)
     plt.savefig(os.path.join(rootpath, 'outputs', 'GridSearch - Actual vs. Predicted.jpg'), format='jpeg')
 
-    results = pd.DataFrame(grid_search.cv_results_)
-    scores = np.array(results.mean_test_score).reshape(len(param_grid['n_estimators']), len(param_grid['max_depth']))
+    # results = pd.DataFrame(grid_search.cv_results_)
+    # scores = np.array(results.mean_test_score).reshape(len(param_grid['n_estimators']), len(param_grid['max_depth']))
 
     # Plot heatmap
-    plt.figure(figsize=(10, 6))
-    sns.heatmap(scores, annot=True, fmt=".3f", xticklabels=param_grid['max_depth'], yticklabels=param_grid['n_estimators'], cmap="viridis")
-    plt.xlabel('Max Depth')
-    plt.ylabel('Number of Estimators')
-    plt.title('Grid Search Results (Mean Test Score)')
-    plt.savefig(os.path.join(rootpath, 'outputs', 'GridSearchResults.png'))
+    # plt.figure(figsize=(10, 6))
+    # sns.heatmap(scores, annot=True, fmt=".3f", xticklabels=param_grid['max_depth'], yticklabels=param_grid['n_estimators'], cmap="viridis")
+    # plt.xlabel('Max Depth')
+    # plt.ylabel('Number of Estimators')
+    # plt.title('Grid Search Results (Mean Test Score)')
+    # plt.savefig(os.path.join(rootpath, 'outputs', 'GridSearchResults.png'))
 
-    loading.info("GridsearchCV XGBoost completed")
+    logging.info("GridsearchCV XGBoost completed")
 
 
 if __name__ == '__main__':
@@ -213,8 +212,7 @@ if __name__ == '__main__':
     try:
         main(args.root_path, args.loader)
     except KeyboardInterrupt:
-        loading.warning('Program terminated by user')
+        logging.warning('Program terminated by user')
         exit(-1)
     except Exception as e:
-        loading.error(e)
-        loading.error('Error running the program')
+        logging.error('Error running the program')

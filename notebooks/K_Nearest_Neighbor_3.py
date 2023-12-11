@@ -56,8 +56,15 @@ def main(rootpath, loader):
 
     # Assuming you have a DataFrame named 'df' with the necessary columns
     # Extracting features (independent variables) and the target variable
+
+    df.reset_index(drop=True, inplace=True)
+
+    logging.debug("KNN Regression: Extracting features (independent variables) and the target variable")
+
     X = df.drop(['baseFare'], axis=1)
     y = df['baseFare']
+
+    logging.debug("KNN Regression: Splitting the data into training and testing sets")
 
     # Splitting the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=39)
@@ -65,8 +72,8 @@ def main(rootpath, loader):
     # Separating numeric and categorical columns
     numeric_features = X.select_dtypes(include=['float64', 'int64']).columns
     categorical_features = X.select_dtypes(include=['object']).columns
-    logging.debug(f"Numeric Features: {numeric_features.columns}")
-    logging.debug(f"Categorical Features: {categorical_features.columns}")
+    logging.debug(f"Numeric Features: {numeric_features}")
+    logging.debug(f"Categorical Features: {categorical_features}")
     # Creating transformers for numeric and categorical features
 
     numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])

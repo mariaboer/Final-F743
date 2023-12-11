@@ -88,9 +88,9 @@ def main(rootpath, loader):
     mse = mean_squared_error(y_test, y_pred)
     r_squared = r2_score(y_test, y_pred)
 
-    loading.info("Random Forest Regression Model: Return the Mean Squared Error and R-squared")
-    loading.info(f'Mean Squared Error: {mse}')
-    loading.info(f'R-squared: {r_squared}')
+    logging.info("Random Forest Regression Model: Return the Mean Squared Error and R-squared")
+    logging.info(f'Mean Squared Error: {mse}')
+    logging.info(f'R-squared: {r_squared}')
 
     # Calculate residuals
     residuals = y_test - y_pred
@@ -114,7 +114,7 @@ def main(rootpath, loader):
     plt.grid(True)
     plt.savefig(os.path.join(rootpath, 'outputs', 'Random Forest - Actual vs. Predicted.jpg'), format='jpeg')
 
-    loading.info("Random Forest completed")
+    logging.info("Random Forest completed")
 
 
 if __name__ == '__main__':
@@ -131,8 +131,8 @@ if __name__ == '__main__':
     try:
         main(args.root_path, args.loader)
     except KeyboardInterrupt:
-        loading.warning('Program terminated by user')
+        logging.warning('Program terminated by user')
         exit(-1)
     except Exception as e:
-        loading.error(e)
-        loading.error('Error running the program')
+        logging.error(e)
+        logging.error('Error running the program')

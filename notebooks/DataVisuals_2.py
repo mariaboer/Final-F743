@@ -81,8 +81,8 @@ def main(rootpath, loader):
 
     # Scatter Plots
     logging.debug("Creating Scatter Plots")
-    scatter_features = ['totalTravelDuration', 'totalTravelDistance', 'seatsRemaining']
-    scatter_labels = ['Travel Duration vs baseFare', 'Total Travel Distance vs baseFare', 'Seats Remaining vs baseFare']
+    scatter_features = ['totalTravelDuration', 'seatsRemaining']
+    scatter_labels = ['Travel Duration vs baseFare', 'Seats Remaining vs baseFare']
 
     plt.figure(figsize=(16, 5))
     for i in range(len(scatter_features)):

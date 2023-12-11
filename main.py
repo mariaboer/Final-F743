@@ -1,20 +1,18 @@
 import logging
 import os
-import threading
-from time import sleep
 
 import notebooks.AdaBoosterRegressor_8 as ABR
+import notebooks.Chunkfile_0 as loader  # noqa
 import notebooks.Chunkfile_0 as loader  # noqa
 import notebooks.DataVisuals_2 as visuals
 import notebooks.GradientBoostingRegressor_7 as GBR
 import notebooks.GridSearchCV_6 as GridSearch
 import notebooks.K_Nearest_Neighbor_3 as KNN
 import notebooks.MLP_Regressor_10 as MLP
+import notebooks.Preprocessing_1 as preproc  # noqa
 import notebooks.Principle_Component_Analysis_4 as PCA
 import notebooks.RandomForestRegressor_9 as RFR
 import notebooks.XGBoost_5 as XGB
-## import notebooks.Preprocessing_1 as preproc  # noqa
-import notebooks.reduced_preprocessing_1 as preproc  # noqa
 
 
 def configure_logging(level=logging.INFO, log_path=None):
@@ -50,28 +48,40 @@ def str_or_none(value):
 
 def main():
     rootpath = os.path.dirname(os.path.realpath(__file__))
-    # loader.main(rootpath)
-    # preproc.main(rootpath, 'Memory')
+    visuals.main(rootpath, 'Memory')
+    KNN.main(rootpath, 'Memory')
+    PCA.main(rootpath, 'Memory')
+    XGB.main(rootpath, 'Memory')
+    GridSearch.main(rootpath, 'Memory')
+    GBR.main(rootpath, 'Memory')
+    ABR.main(rootpath, 'Memory')
+    MLP.main(rootpath, 'Memory')
+    RFR.main(rootpath, 'Memory')
 
-    threads = []
-    active_threads = []
-    max_threads = 1  # Adjust this number to reduce the amount of memory usage
 
-    threads.append(threading.Thread(target=visuals.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=KNN.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=PCA.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=XGB.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=GridSearch.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=GBR.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=ABR.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=RFR.main, args=(rootpath, 'Memory')))
-    threads.append(threading.Thread(target=MLP.main, args=(rootpath, 'Memory')))
-    # threads.append(threading.Thread(target=NN.main, args=(rootpath,'Memory')))
-
-    while len(threads) > 0:
-        if threading.active_count() < max_threads:
-            threads.pop().start()
-            sleep(1)
+#     loader.main(rootpath)
+#     preproc.main(rootpath, 'Memory')
+#
+#    threads = []
+#    active_threads = []
+#    max_threads = 2  # Adjust this number to reduce the amount of memory usage
+#
+#    threads.append(threading.Thread(target=visuals.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=KNN.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=PCA.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=XGB.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=GridSearch.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=GBR.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=ABR.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=RFR.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=MLP.main, args=(rootpath, 'Memory')))
+#    threads.append(threading.Thread(target=NN.main, args=(rootpath,'Memory')))
+#
+#    while len(threads) > 0:
+#        if threading.active_count() < max_threads:
+#            threads.pop().start()
+#            logging.debug(f"Thread started. Active threads: {threading.active_count()}")
+#            sleep(1)
 
 
 if __name__ == '__main__':
@@ -82,7 +92,7 @@ if __name__ == '__main__':
         # The preprocessing step requires ~25GB of RAM.
         # Please ensure you have enough RAM before running these steps.
         # If you do not have enough RAM, please run the notebooks individually.
-        configure_logging(logging.DEBUG)
+        configure_logging(logging.INFO)
         main()
         print('All threads completed')
     except KeyboardInterrupt:

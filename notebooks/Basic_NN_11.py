@@ -138,8 +138,8 @@ if __name__ == '__main__':
     try:
         main(args.root_path, args.loader)
     except KeyboardInterrupt:
-        loading.warning('Program terminated by user')
+        logging.warning('Program terminated by user')
         exit(-1)
     except Exception as e:
-        loading.error(e)
-        loading.error('Error running the program')
+        logging.error(e)
+        logging.error('Error running the program')

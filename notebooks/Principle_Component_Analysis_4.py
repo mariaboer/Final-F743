@@ -119,12 +119,16 @@ def main(rootpath, loader):
     plt.savefig(os.path.join(rootpath, 'outputs', 'PCA - Cumulative Explained Variance.jpg'), format='jpeg')
 
     # Plot reduced-dimensional scatter plot
-    logging.debug("Plotting reduced-dimensional scatter plot")
-    plt.scatter(pca_result[:, 0], pca_result[:, 1], c=y, cmap='viridis', edgecolors='k')
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.title('PCA: Reduced-dimensional Scatter Plot')
-    plt.savefig(os.path.join(rootpath, 'outputs', 'PCA - Reduced dimensional Scatter Plot.jpg'), format='jpeg')
+    # logging.debug("Plotting reduced-dimensional scatter plot")
+    # logging.info("Shape of pca_result:", pca_result.shape)
+    # if len(pca_result.shape) == 1:
+    #     pca_result = pca_result.reshape(-1, 1)
+    # try:
+    #     plt.scatter(pca_result[:, 0], pca_result[:, 1], c=y, cmap='viridis', edgecolors='k')
+    #     plt.xlabel('Principal Component 1')
+    #     plt.ylabel('Principal Component 2')
+    #     plt.title('PCA: Reduced-dimensional Scatter Plot')
+    #     plt.savefig(os.path.join(rootpath, 'outputs', 'PCA - Reduced dimensional Scatter Plot.jpg'), format='jpeg')
 
     logging.info("PCA completed successfully")
 

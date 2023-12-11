@@ -63,7 +63,7 @@ def main(rootpath, loader):
 
     # Identify categorical columns
     categorical_columns = X.select_dtypes(include=['object']).columns
-    logging.debg(f"Categorical columns: {categorical_columns}")
+    logging.debug(f"Categorical columns: {categorical_columns}")
     # Create transformers for encoding and scaling
     preprocessor = ColumnTransformer(
         transformers=[

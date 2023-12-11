@@ -84,13 +84,16 @@ def convert_week_number(datetime_str):
 
 def main(rootpath, loader):
     # Bring in data to pre-process
-    if loader == 'DataFile':
-        datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
-        df = pd.read_csv(datafile)
-    else:
-        pickle_file = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
-        with open(pickle_file, 'rb') as file:
-            df = pickle.load(file)
+    datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+    df = pd.read_csv(datafile, nrows=100000)
+
+    # if loader == 'DataFile':
+    #     datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+    #     df = pd.read_csv(datafile)
+    # else:
+    #     pickle_file = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
+    #     with open(pickle_file, 'rb') as file:
+    #         df = pickle.load(file)
 
     # Preprocess Data
     logging.debug("Starting preprocessing")
@@ -120,13 +123,11 @@ def main(rootpath, loader):
 
     logging.debug("Replacing null values")
     # Check for sparse data - will impact models
-    df = df.replace('', np.nan)
-    df = df.replace(' ', np.nan)
-    df = df.replace('null', np.nan)
-    df = df.replace('NULL', np.nan)
-    df = df.replace(None, np.nan)
+    # Define a dictionary for replacements
+    replacements = {'': np.nan, ' ': np.nan, 'null': np.nan, 'NULL': np.nan, None: np.nan}
+    df.replace(replacements, inplace=True)
     df.dropna(inplace=True)
-    df = df.dropna()
+
     logging.debug("Null values replaced")
 
     logging.debug(f"Pre-Sparse drop:{df.head()}")
@@ -147,7 +148,7 @@ def main(rootpath, loader):
     df.to_csv(datafile, index=False)
 
     # Use Pickle to create a binary hierarchy that can be translated later
-    with open(os.path.join(root_path, 'snapshots', 'preprocessed.pkl'), 'wb') as file:
+    with open(os.path.join(rootpath, 'snapshots', 'preprocessed.pkl'), 'wb') as file:
         pickle.dump(df, file)
     logging.info("Preprocessing Complete")
 

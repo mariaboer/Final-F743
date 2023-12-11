@@ -44,7 +44,7 @@ def main(rootpath, loader):
         datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_Processed.csv')
         df = pd.read_csv(datafile)
     else:
-        pickle_file = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
+        pickle_file = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
         with open(pickle_file, 'rb') as file:
             df = pickle.load(file)
 

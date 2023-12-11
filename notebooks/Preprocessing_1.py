@@ -1,5 +1,6 @@
 # Bring in the correct packages
 import argparse
+import logging
 import os
 import pickle
 import re
@@ -8,10 +9,32 @@ import numpy as np
 import pandas as pd
 
 
-# The Atlanta Prices is made up of concatenated columns up to 4 different values that is made up of date/datetime,
-# strings, and integers. Def will be created to process those columns
+def configure_logging(level=logging.INFO, log_path=None):
+    if log_path is None:
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+    if not os.path.exists(log_path):
+        os.mkdir(log_path)
 
-# Create custom equation for working with date and datetime
+    log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
+    if level == logging.INFO or logging.NOTSET:
+        logging.basicConfig(
+                level=level,
+                format="%(asctime)s [%(levelname)s] %(message)s",
+                handlers=[
+                    logging.FileHandler(log_file),
+                    logging.StreamHandler()
+                ]
+        )
+    elif level == logging.DEBUG or level == logging.ERROR:
+        logging.basicConfig(
+                level=level,
+                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+                handlers=[
+                    logging.FileHandler(log_file),
+                    logging.StreamHandler()
+                ]
+        )
+
 
 def str_or_none(value):
     return value if value is None else str(value)
@@ -59,54 +82,54 @@ def convert_week_number(datetime_str):
     return iso_week
 
 
-def main(rootpath):
+def main(rootpath, loader):
     # Bring in data to pre-process
-    if rootpath is None:
-        rootpath = os.path.dirname(__file__)
-    # datafile = os.path.join(rootpath, 'Atlanta Prices.csv')
-    # df = pd.read_csv(datafile)
-
-    picklefile = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
-    with open(picklefile, 'rb') as file:
-        df = pickle.load(file)
+    if loader == 'DataFile':
+        datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+        df = pd.read_csv(datafile)
+    else:
+        pickle_file = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
+        with open(pickle_file, 'rb') as file:
+            df = pickle.load(file)
 
     # Preprocess Data
-
+    logging.debug("Starting preprocessing")
     df = df.dropna()
-
-    df['totalTravelDuration'] = df['travelDuration'].apply(lambda x: convert_duration(x))
-
-    df['weeknum'] = df['segmentsDepartureTimeRaw'].str[:29].apply(lambda x: convert_week_number(x))
-
-    df['time_of_departure'] = df['segmentsDepartureTimeRaw'].str[:29].apply(lambda x: convert_time_period(x))
-
-    df['time_of_arrival'] = df['segmentsArrivalTimeRaw'].str[-29:].apply(lambda x: convert_time_period(x))
-
-    df['no_layovers'] = df['segmentsArrivalAirportCode'].apply(count_unique_values_in_row)
-
-    df['no_airlines'] = df['segmentsAirlineCode'].apply(count_unique_values_in_row)
-
-    df['no_equipment'] = df['segmentsEquipmentDescription'].apply(count_unique_values_in_row)
-
-    df['no_cabin_changes'] = df['segmentsCabinCode'].apply(count_unique_values_in_row)
-
-    # Update Dataframe
-    df = df[['destinationAirport', 'elapsedDays', 'isBasicEconomy', 'isNonStop', 'baseFare', 'totalFare', 'seatsRemaining', 'totalTravelDistance', 'totalTravelDuration', 'weeknum', 'time_of_departure',
+    # Drop Unwanted columns in  Dataframe
+    df = df[['destinationAirport', 'elapsedDays', 'isBasicEconomy', 'isNonStop', 'baseFare', 'totalFare', 'seatsRemaining',
+             'totalTravelDistance', 'totalTravelDuration', 'weeknum', 'time_of_departure',
              'time_of_arrival', 'no_airlines', 'no_layovers', 'no_equipment', 'no_cabin_changes']]
 
-    # Check for sparse data - will impact models
-    df = df.replace(np.nan, '', inplace=False, regex=True)
-    df = df.dropna()
-    sparse_columns = df.select_dtypes(include=pd.SparseDtype()).columns
+    # Rename columns
+    df['totalTravelDuration'] = df['travelDuration'].apply(lambda x: convert_duration(x))
+    df['weeknum'] = df['segmentsDepartureTimeRaw'].str[:29].apply(lambda x: convert_week_number(x))
+    df['time_of_departure'] = df['segmentsDepartureTimeRaw'].str[:29].apply(lambda x: convert_time_period(x))
+    df['time_of_arrival'] = df['segmentsArrivalTimeRaw'].str[-29:].apply(lambda x: convert_time_period(x))
+    df['no_layovers'] = df['segmentsArrivalAirportCode'].apply(count_unique_values_in_row)
+    df['no_airlines'] = df['segmentsAirlineCode'].apply(count_unique_values_in_row)
+    df['no_equipment'] = df['segmentsEquipmentDescription'].apply(count_unique_values_in_row)
+    df['no_cabin_changes'] = df['segmentsCabinCode'].apply(count_unique_values_in_row)
 
-    if not sparse_columns.empty:
-        print(f"The following columns have sparse dtype: {sparse_columns}")
+    logging.debug("Replacing null values")
+    # Check for sparse data - will impact models
+    df.replace('', np.nan, inplace=True, regex=True)
+    df.replace(' ', np.nan, inplace=True, regex=True)
+    df.replace('null', np.nan, inplace=True, regex=True)
+    df.replace('NULL', np.nan, inplace=True, regex=True)
+    df.replace(None, np.nan, inplace=True, regex=True)
+    df = df.dropna()
+    logging.debug(f"Pre-Sparse drop:{df.head()}")
+    sparse_columns = df.select_dtypes(include=pd.SparseDtype()).columns
 
     if 'baseFare' in sparse_columns:
         sparse_columns = sparse_columns[sparse_columns != 'baseFare']
 
+    if not sparse_columns.empty:
+        logging.warning(f"The following columns have sparse dtype: {sparse_columns}")
+
     df = df.drop(columns=sparse_columns)
     df = df.reset_index()
+    logging.debug(f"Post sparse drop:\n{df.head()}")
 
     # Save dataframe off in case of error
     datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_Processed.csv')
@@ -115,18 +138,25 @@ def main(rootpath):
     # Use Pickle to create a binary hierarchy that can be translated later
     with open(os.path.join(root_path, 'snapshots', 'preprocessed.pkl'), 'wb') as file:
         pickle.dump(df, file)
-    print("Preprocessing Complete")
+    logging.info("Preprocessing Complete")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocessing')
     parser.add_argument('--root_path', type=str_or_none, help='Root path of the project. Should have the snapshots/data folder', default=None)
+    parser.add_argument('--loader', type=str_or_none, help='Type of loader to use. Literals "DataFile" or "Memory".Default - Memory', default="Memory")
     args = parser.parse_args()
+    if args.root_path is None:
+        args.root_path = os.path.dirname(__file__)
+    configure_logging(logging.DEBUG, os.path.join(args.root_path,'logs'))
+    if ['DataFile', 'Memory'] not in args.loader:
+        logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
+    args.loader = 'Memory'
     try:
-        main(args.root_path)
+        main(args.root_path, args.loader)
     except KeyboardInterrupt:
-        print("Keyboard Interrupt")
+        logging.info("Keyboard Interrupt")
         exit(-1)
     except Exception as e:
-        print(e)
+        logging.error(e)
         exit(1)

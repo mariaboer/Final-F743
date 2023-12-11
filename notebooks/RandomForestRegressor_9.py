@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 
 def str_or_none(value):
-    return value if value is None else str(x)
+    return value if value is None else str(value)
 
 
 def main(rootpath):

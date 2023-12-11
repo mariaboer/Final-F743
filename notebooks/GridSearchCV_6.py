@@ -6,10 +6,9 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from xgboost import XGBRegressor
 
 
@@ -17,15 +16,42 @@ def str_or_none(value):
     return value if value is None else str(value)
 
 
-def main(rootpath):
-    if rootpath is None:
-        rootpath = os.path.dirname(__file__)
-    datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_smallsubset.csv')
-    df = pd.read_csv(datafile)
+def configure_logging(level=logging.INFO, log_path=None):
+    if log_path is None:
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+    if not os.path.exists(log_path):
+        os.mkdir(log_path)
 
-    # picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
-    # with open(picklefile, 'rb') as file:
-    #     df = pickle.load(file)
+    log_file = os.path.join(log_path, f"{os.path.dirname(os.path.realpath(__file__)).split(os.sep)[-1]}.log")
+    if level == logging.INFO or logging.NOTSET:
+        logging.basicConfig(
+                level=level,
+                format="%(asctime)s [%(levelname)s] %(message)s",
+                handlers=[
+                    logging.FileHandler(log_file),
+                    logging.StreamHandler()
+                ]
+        )
+    elif level == logging.DEBUG or level == logging.ERROR:
+        logging.basicConfig(
+                level=level,
+                format="%(asctime)s %(filename)s function:%(funcName)s()\t[%(levelname)s] %(message)s",
+                handlers=[
+                    logging.FileHandler(log_file),
+                    logging.StreamHandler()
+                ]
+        )
+
+
+def main(rootpath, loader):
+    # Bring in data to pre-process
+    if loader == 'DataFile':
+        datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+        df = pd.read_csv(datafile)
+    else:
+        pickle_file = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
+        with open(pickle_file, 'rb') as file:
+            df = pickle.load(file)
 
     # This algorithm uses gridsearch to identify the optimal hyperparameters
 
@@ -41,10 +67,10 @@ def main(rootpath):
 
     # Create transformers for encoding and scaling
     preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
-            ('cat', OneHotEncoder(), categorical_columns)
-        ])
+            transformers=[
+                ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
+                ('cat', OneHotEncoder(), categorical_columns)
+            ])
 
     # Create the XGBoost Regressor model
     xgb_model = XGBRegressor()
@@ -54,11 +80,11 @@ def main(rootpath):
 
     # Define hyperparameters for tuning
     param_grid = {
-        'model__n_estimators': [100, 200, 300],
-        'model__learning_rate': [0.01, 0.1, 0.2],
-        'model__max_depth': [3, 5, 7],
+        'model__n_estimators'    : [100, 200, 300],
+        'model__learning_rate'   : [0.01, 0.1, 0.2],
+        'model__max_depth'       : [3, 5, 7],
         'model__min_child_weight': [1, 3, 5],
-        'model__subsample': [0.8, 1.0],
+        'model__subsample'       : [0.8, 1.0],
         'model__colsample_bytree': [0.8, 1.0],
     }
 
@@ -97,18 +123,18 @@ def main(rootpath):
 
     # Create transformers for encoding and scaling
     preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
-            ('cat', OneHotEncoder(), categorical_columns)
-        ])
+            transformers=[
+                ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
+                ('cat', OneHotEncoder(), categorical_columns)
+            ])
 
     # Use the best hyperparameters from GridSearchCV
     best_hyperparameters = {'model__colsample_bytree': 0.8,
-                            'model__learning_rate': 0.1,
-                            'model__max_depth': 7,
+                            'model__learning_rate'   : 0.1,
+                            'model__max_depth'       : 7,
                             'model__min_child_weight': 1,
-                            'model__n_estimators': 300,
-                            'model__subsample': 0.8}
+                            'model__n_estimators'    : 300,
+                            'model__subsample'       : 0.8}
 
     # Create the XGBoost Regressor model with the best hyperparameters
     xgb_model = XGBRegressor(**best_hyperparameters)
@@ -152,9 +178,16 @@ def main(rootpath):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GridSearchCV XGBoost Regressio')
     parser.add_argument('--root_path', type=str_or_none, help='Root path of the project. Should have the snapshots/data folder', default=None)
+    parser.add_argument('--loader', type=str_or_none, help='Type of loader to use. Literals "DataFile" or "Memory".Default - Memory', default="Memory")
     args = parser.parse_args()
+    if args.root_path is None:
+        args.root_path = os.path.dirname(__file__)
+    configure_logging(logging.DEBUG, os.path.join(args.root_path,'logs'))
+    if ['DataFile', 'Memory'] not in args.loader:
+        logging.warning("Invalid loader. Valid loaders are 'DataFile' or 'Memory'. Defaulting to 'Memory'")
+    args.loader = 'Memory'
     try:
-        main(args.root_path)
+        main(args.root_path, args.loader)
     except KeyboardInterrupt:
         print('Program terminated by user')
         exit(-1)

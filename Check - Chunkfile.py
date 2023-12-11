@@ -1,7 +1,6 @@
 # Bring in the correct packages
 import argparse
 import os
-import pickle
 import re
 
 import numpy as np
@@ -63,14 +62,9 @@ def main(rootpath):
     # Bring in data to pre-process
     if rootpath is None:
         rootpath = os.path.dirname(__file__)
-    # datafile = os.path.join(rootpath, 'Atlanta Prices.csv')
-    # df = pd.read_csv(datafile)
 
-    picklefile = os.path.join(rootpath, 'snapshots', 'chunk.pkl')
-    with open(picklefile, 'rb') as file:
-        df = pickle.load(file)
-
-    # Preprocess Data
+    datafile = os.path.join(rootpath, 'data', 'Atlanta Prices.csv')
+    df = pd.read_csv(datafile, nrows=100000)
 
     df = df.dropna()
 
@@ -94,28 +88,9 @@ def main(rootpath):
     df = df[['destinationAirport', 'elapsedDays', 'isBasicEconomy', 'isNonStop', 'baseFare', 'totalFare', 'seatsRemaining', 'totalTravelDistance', 'totalTravelDuration', 'weeknum', 'time_of_departure',
              'time_of_arrival', 'no_airlines', 'no_layovers', 'no_equipment', 'no_cabin_changes']]
 
-    # Check for sparse data - will impact models
-    df = df.replace(np.nan, '', inplace=False, regex=True)
-    df = df.dropna()
-    sparse_columns = df.select_dtypes(include=pd.SparseDtype()).columns
-
-    if not sparse_columns.empty:
-        print(f"The following columns have sparse dtype: {sparse_columns}")
-
-    if 'baseFare' in sparse_columns:
-        sparse_columns = sparse_columns[sparse_columns != 'baseFare']
-
-    df = df.drop(columns=sparse_columns)
-    df = df.reset_index()
-
     # Save dataframe off in case of error
-    datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_Processed.csv')
+    datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_smallsubset.csv')
     df.to_csv(datafile, index=False)
-
-    # Use Pickle to create a binary hierarchy that can be translated later
-    with open(os.path.join(root_path, 'snapshots', 'preprocessed.pkl'), 'wb') as file:
-        pickle.dump(df, file)
-    print("Preprocessing Complete")
 
 
 if __name__ == '__main__':

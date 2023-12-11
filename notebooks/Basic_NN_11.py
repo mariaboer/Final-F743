@@ -3,8 +3,9 @@ import os
 import pickle
 
 import tensorflow as tf
+from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 
@@ -27,8 +28,17 @@ def main(rootpath):
 
     X = df.drop(['baseFare'], axis=1)
     y = df['baseFare']
+    # Identify categorical columns
+    categorical_columns = X.select_dtypes(include=['object']).columns
 
-    X = StandardScaler().fit_transform(X)
+    # Create transformers for encoding and scaling
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), X.select_dtypes(include=['float64', 'int64']).columns),
+            ('cat', OneHotEncoder(), categorical_columns)
+        ])
+    preprocessed = preprocessor.fit_transform(X)
+    X = StandardScaler().fit_transform(preprocessed)
 
     myNN = Sequential()
     n_x = X.shape[1]

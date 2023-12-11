@@ -1,24 +1,24 @@
 import argparse
 import os
-import pickle
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 
 def str_or_none(value):
-    return value if value is None else str(x)
+    return value if value is None else str(value)
 
 
 def main(rootpath):
     if rootpath is None:
         rootpath = os.path.dirname(__file__)
-    # datafile = os.path.join(rootpath, 'AtlantaPrices_Processed.csv')
-    # df = pd.read_csv(datafile)
+    datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_smallsubset.csv')
+    df = pd.read_csv(datafile)
 
-    picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
-    with open(picklefile, 'rb') as file:
-        df = pickle.load(file)
+    # picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
+    # with open(picklefile, 'rb') as file:
+    # df = pickle.load(file)
 
     # Debug Visuals
     # df.info()

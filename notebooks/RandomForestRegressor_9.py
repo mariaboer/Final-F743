@@ -3,6 +3,7 @@ import os
 import pickle
 
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor  # Import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -22,8 +23,6 @@ def main(rootpath):
     picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
     with open(picklefile, 'rb') as file:
         df = pickle.load(file)
-
-    from sklearn.ensemble import RandomForestRegressor  # Import RandomForestRegressor
 
     # Separate features (X) and target variable (y)
     X = df.drop('baseFare', axis=1)

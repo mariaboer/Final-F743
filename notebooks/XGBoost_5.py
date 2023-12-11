@@ -2,27 +2,37 @@ import argparse
 import os
 import pickle
 
-from sklearn.compose import ColumnTransformer
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from xgboost import XGBRegressor
+import matplotlib.pyplot as plt
+import pandas as pd
+import xgboost as xgb
 
 
 def str_or_none(value):
     return value if value is None else str(x)
 
 
+from sklearn.compose import ColumnTransformer
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+
+# Using KNN to make predictions based on the similarity of the datapoints in the dataset.
+
+def str_or_none(value):
+    return value if value is None else str(value)
+
+
 def main(rootpath):
     if rootpath is None:
         rootpath = os.path.dirname(__file__)
-    # datafile = os.path.join(rootpath, 'AtlantaPrices_Processed.csv')
-    # df = pd.read_csv(datafile)
+    datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_smallsubset.csv')
+    df = pd.read_csv(datafile)
 
-    picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
-    with open(picklefile, 'rb') as file:
-        df = pickle.load(file)
+    # picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
+    # with open(picklefile, 'rb') as file:
+    #     df = pickle.load(file)
 
     df = df.reset_index()
 
@@ -44,7 +54,7 @@ def main(rootpath):
         ])
 
     # Create the XGBoost Regressor model
-    model = XGBRegressor()
+    model = xgb.XGBRegressor()
 
     # Create a pipeline with encoding and model
     pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('model', model)])
@@ -66,6 +76,16 @@ def main(rootpath):
 
     print(f'Mean Squared Error: {mse}')
     print(f'R-squared: {r_squared}')
+
+    num_trees_to_plot = 5
+
+    plt.figure(figsize=(18, 12))
+    for i in range(num_trees_to_plot):
+        plt.subplot(1, num_trees_to_plot, i + 1)
+        xgb.plot_tree(pipeline.named_steps['model'], num_trees=i, rankdir='LR')
+        plt.title(f'Tree {i + 1}')
+
+    plt.savefig(os.path.join(rootpath, 'outputs', 'xgboost.png'))
 
     print("XGBoost completed")
 

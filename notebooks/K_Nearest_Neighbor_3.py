@@ -3,6 +3,7 @@ import os
 import pickle
 
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
@@ -14,18 +15,18 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 # Using KNN to make predictions based on the similarity of the datapoints in the dataset.
 
 def str_or_none(value):
-    return value if value is None else str(x)
+    return value if value is None else str(value)
 
 
 def main(rootpath):
     if rootpath is None:
         rootpath = os.path.dirname(__file__)
-    # datafile = os.path.join(rootpath, 'AtlantaPrices_Processed.csv')
-    # df = pd.read_csv(datafile)
+    datafile = os.path.join(rootpath, 'data', 'AtlantaPrices_smallsubset.csv')
+    df = pd.read_csv(datafile)
 
-    picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
-    with open(picklefile, 'rb') as file:
-        df = pickle.load(file)
+    # picklefile = os.path.join(rootpath, 'snapshots', 'preprocessed.pkl')
+    # with open(picklefile, 'rb') as file:
+    #     df = pickle.load(file)
 
     df = df.reset_index()
 

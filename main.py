@@ -48,40 +48,45 @@ def str_or_none(value):
 
 def main():
     rootpath = os.path.dirname(os.path.realpath(__file__))
-    visuals.main(rootpath, 'Memory')
-    KNN.main(rootpath, 'Memory')
-    PCA.main(rootpath, 'Memory')
-    XGB.main(rootpath, 'Memory')
-    GridSearch.main(rootpath, 'Memory')
-    GBR.main(rootpath, 'Memory')
-    ABR.main(rootpath, 'Memory')
-    MLP.main(rootpath, 'Memory')
-    RFR.main(rootpath, 'Memory')
 
 
-#     loader.main(rootpath)
-#     preproc.main(rootpath, 'Memory')
-#
-#    threads = []
-#    active_threads = []
-#    max_threads = 2  # Adjust this number to reduce the amount of memory usage
-#
-#    threads.append(threading.Thread(target=visuals.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=KNN.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=PCA.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=XGB.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=GridSearch.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=GBR.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=ABR.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=RFR.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=MLP.main, args=(rootpath, 'Memory')))
-#    threads.append(threading.Thread(target=NN.main, args=(rootpath,'Memory')))
-#
-#    while len(threads) > 0:
-#        if threading.active_count() < max_threads:
-#            threads.pop().start()
-#            logging.debug(f"Thread started. Active threads: {threading.active_count()}")
-#            sleep(1)
+    # USED TO RUN without threading
+    # loader.main(rootpath)
+    # preproc.main(rootpath, 'Memory')
+    # visuals.main(rootpath, 'Memory')
+    # KNN.main(rootpath, 'Memory')
+    # PCA.main(rootpath, 'Memory')
+    # XGB.main(rootpath, 'Memory')
+    # GridSearch.main(rootpath, 'Memory')
+    # GBR.main(rootpath, 'Memory')
+    # ABR.main(rootpath, 'Memory')
+    # MLP.main(rootpath, 'Memory')
+    # RFR.main(rootpath, 'Memory')
+
+
+     loader.main(rootpath)
+     preproc.main(rootpath, 'Memory')
+
+    threads = []
+    active_threads = []
+    max_threads = 2  # Adjust this number to reduce the amount of memory usage
+
+    threads.append(threading.Thread(target=visuals.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=KNN.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=PCA.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=XGB.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=GridSearch.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=GBR.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=ABR.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=RFR.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=MLP.main, args=(rootpath, 'Memory')))
+    threads.append(threading.Thread(target=NN.main, args=(rootpath,'Memory')))
+
+    while len(threads) > 0:
+        if threading.active_count() < max_threads:
+            threads.pop().start()
+            logging.debug(f"Thread started. Active threads: {threading.active_count()}")
+            sleep(1)
 
 
 if __name__ == '__main__':
